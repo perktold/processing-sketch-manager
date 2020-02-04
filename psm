@@ -1,0 +1,105 @@
+#! /bin/sh
+
+showHelp(){
+	echo "
+	processing sketch manager
+	
+	Usage: psm [OPTION] [SKETCH_NAME]
+	-c, --create		create sketch
+	-e, --edit		edit sketch
+	-r, --run		run sketch
+	-d, --delete		delete sketch
+
+	other options:
+	-h, --help		show this screen
+	"
+}
+
+create(){
+	if [ -d "$1" ]
+	then
+		echo "
+folder already exists
+		"
+	elif [ "${PWD##*/}" = "$1" ]
+	then
+		echo "
+you already are in a directory called $1
+are you sure you want to continue?
+		"
+		read -p "[y/N] " ans
+		if [ "$ans" = "y" -o "$ans" = "Y" ]
+		then
+			createNewSketch $1 ${1##*/}
+		fi
+
+	else
+		createNewSketch $1 ${1##*/}
+	fi
+}
+
+createNewSketch(){
+ 
+	mkdir "$1"
+	echo "void setup(){
+
+}
+    
+void draw(){
+    
+}
+	" >> "$1/$2.pde"
+
+}
+
+edit(){
+
+
+	if [ ! -d "$1" ]
+	then
+		echo "
+sketch does not exist
+create with psm --create [SKETCH_NAME]
+	"
+	elif [ "$EDITOR" = "" ]
+	then
+		echo "\$EDITOR variable not set. make sure to set \$EDITOR"
+	else
+		$EDITOR $1/$1.pde
+	fi
+}
+
+run(){
+	echo "running $1 at $PWD/$1"
+	processing-java --sketch=$1 --run
+}
+
+delete(){
+	echo "deleting sketch $1"
+	read -p "Are you sure? [y/N]" ans
+	if [ "$ans" = "y" -o "$ans" = "Y" ]
+	then
+		if [ -d "$1" ]
+		then
+			rm -r "$1"
+		fi
+	fi
+}
+
+if [ "$1" = "--help" -o "$1" = "-h" ]
+then
+	showHelp
+elif [ "$1" = "--create" -o "$1" = "-c" ]
+then
+	create "$2"
+elif [ "$1" = "--edit" -o "$1" = "-e" ]
+then
+	edit "$2"
+elif [ "$1" = "--run" -o "$1" = "-r" ]
+then
+	run "$2"
+elif [ "$1" = "--delete" -o "$1" = "-d" ]
+then
+	delete "$2"
+fi
+
